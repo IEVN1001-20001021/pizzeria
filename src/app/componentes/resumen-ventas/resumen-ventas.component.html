@@ -1,0 +1,66 @@
+<div class="relative p-6 border-2 border-dashed border-gray-300">
+  <span
+    class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-gray-600"
+  >
+    Ventas de día
+  </span>
+
+  <!-- Select para elegir el día -->
+  <div class="mb-4">
+    <label for="dia" class="block text-sm font-medium text-gray-700"
+      >Selecciona un día:</label
+    >
+    <select
+      id="dia"
+      [(ngModel)]="diaSeleccionado"
+      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+    >
+      <option value="lunes">Lunes</option>
+      <option value="martes">Martes</option>
+      <option value="miércoles">Miércoles</option>
+      <option value="jueves">Jueves</option>
+      <option value="viernes">Viernes</option>
+      <option value="sábado">Sábado</option>
+      <option value="domingo">Domingo</option>
+    </select>
+  </div>
+  <!-- Input para ingresar el día -->
+  <!-- <div class="mb-4">
+    <label for="dia" class="block text-sm font-medium text-gray-700"
+      >Ingresa un día:</label
+    >
+    <input
+      id="dia"
+      [(ngModel)]="diaSeleccionado"
+      (ngModelChange)="validarDia()"
+      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+      placeholder="Ejemplo: lunes"
+    />
+  </div> -->
+
+  <!-- Mostrar los totales por cliente solo si hay ventas del día -->
+  <div
+    *ngFor="let venta of ventasPorDia"
+    class="border-2 border-black p-4 rounded-lg shadow-lg mt-4"
+  >
+    <p class="font-bold">ID de Ticket: {{ venta.ticketId }}</p>
+    <p class="text-xl">Cliente: {{ venta.nombreCliente }}</p>
+    <p class="text-lg">Total: ${{ venta.total.toFixed(2) }}</p>
+  </div>
+
+  <!-- Mostrar el total de ventas del día -->
+  <p *ngIf="ventasPorDia.length > 0" class="mt-4 font-semibold">
+    Ventas totales del día ${{ totalVentas.toFixed(2) }}
+  </p>
+  <p *ngIf="ventasPorDia.length === 0" class="mt-4 text-red-500">
+    No hay ventas hoy.
+  </p>
+</div>
+
+<!-- Botón para obtener las ventas del día -->
+<button
+  (click)="obtenerVentas(diaSeleccionado)"
+  class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 mt-5"
+>
+  Generar Venta
+</button>

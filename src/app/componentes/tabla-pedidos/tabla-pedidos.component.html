@@ -1,0 +1,63 @@
+<div class="relative overflow-x-auto">
+  <table
+    class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
+  >
+    <thead
+      class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+    >
+    <tr>
+      <th scope="col" class="px-6 py-3">Nombre</th>
+      <th scope="col" class="px-6 py-3">Tamaño</th>
+      <th scope="col" class="px-6 py-3">Cantidad</th>
+      <th scope="col" class="px-6 py-3">Ingredientes</th>
+      <th scope="col" class="px-6 py-3">Fecha</th>
+      <th scope="col" class="px-6 py-3">Subtotal</th>
+      <th scope="col" class="px-6 py-3">Acción</th>
+    </tr>
+    </thead>
+    <tbody>
+      <tr
+        *ngFor="let pedido of pedidos"
+        class="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
+      >
+        <td
+          class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+        >
+          {{ pedido.name }}
+        </td>
+        <td class="px-6 py-4">{{ pedido.pizzaSize }}</td>
+        <td class="px-6 py-4"> {{pedido.cantidad}}</td>
+        <td class="px-6 py-4">
+          <span *ngFor="let ingrediente of pedido.ingredientes"
+            >{{ ingrediente }}
+          </span>
+        </td>
+        <td class="px-6 py-4">{{ pedido.fecha }}</td>
+        <td class="px-6 py-4">{{ pedido.precio | currency }}</td>
+        <td class="px-6 py-4">
+          <button
+            (click)="eliminarPedido(pedido)"
+            class="text-red-600 hover:text-red-800"
+          >
+            Delete
+          </button>
+        </td>
+      </tr>
+      <!-- Fila de total -->
+      <tr class="bg-pink-50 dark:bg-gray-800">
+        <td colspan="5" class="px-6 py-4 font-bold text-right">Total</td>
+        <td class="px-6 py-4 font-bold">{{ calcularTotal() | currency }}</td>
+        <td class="px-6 py-4"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="mt-4">
+  <button
+    (click)="terminarPedido()"
+    class="px-4 py-2 bg-green-500 text-white hover:bg-green-700 rounded"
+  >
+    Completar Orden
+  </button>
+</div>
