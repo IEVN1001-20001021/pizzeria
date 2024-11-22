@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -8,9 +7,6 @@ import { HttpClient } from '@angular/common/http';
 export class PedidoService {
   private pedidosSubject = new BehaviorSubject<any[]>([]);
   pedidos$ = this.pedidosSubject.asObservable();
-
-  private apiUrl = 'http://localhost:5000/terminar-pedido';
-  private ventasApiUrl = 'http://localhost:5000/ventas-por-dia'; // Nueva URL para ventas
 
   private preciosPizza: { [key: string]: number } = {
     Chica: 40,
@@ -24,7 +20,9 @@ export class PedidoService {
     champinones: 10,
   };
 
-  constructor(private http: HttpClient) {}
+  constructor() {
+    this.pedidosSubject.next([]);
+  }
 
   private obtenerPedidos(): any[] {
     return JSON.parse(localStorage.getItem('pedidos') || '[]');
@@ -70,7 +68,6 @@ export class PedidoService {
   terminarPedido(): void {
     const pedidos = this.pedidosSubject.value;
     const total = pedidos.reduce((sum, pedido) => sum + pedido.precio, 0);
-
     if (
       confirm(`El costo total es: $${total}. ¿Está de acuerdo con el pedido?`)
     ) {
@@ -87,36 +84,30 @@ export class PedidoService {
         'viernes',
         'sábado',
       ];
-      const diaSemana = diasSemana[fechaUTC.getDay()];
+      const diaSemana = diasSemana[fechaUTC.getUTCDay()];
 
       const detallesPedido = pedidos.map((pedido) => ({
+        cliente: pedido.name,
+        direccion: pedido.direccion,
+        telefono: pedido.telefono,
         pizza: pedido.pizzaSize,
-        ingredientes: pedido.ingredientes,
+        ingredientes: pedido.ingredientes.join(', '),
         cantidad: pedido.cantidad,
         subtotal: pedido.precio,
+        fecha: pedido.fecha,
       }));
-
       const pedidoCompleto = {
-        cliente: {
-          nombre: pedidos[0].name,
-          direccion: pedidos[0].direccion,
-          telefono: pedidos[0].telefono,
-        },
+        pedidos: detallesPedido,
         total: total,
         fecha: pedidos[0].fecha,
-        dia_semana: diaSemana,
-        detalles: detallesPedido,
+        diaSemana: diaSemana,
       };
-
-      this.http.post(this.apiUrl, pedidoCompleto).subscribe(
-        (response) => {
-          console.log('Pedido guardado en la base de datos:', response);
-          this.pedidosSubject.next([]);
-        },
-        (error) => {
-          console.error('Error al guardar el pedido:', error);
-        }
+      const pedidosGuardados = JSON.parse(
+        localStorage.getItem('pedidos') || '[]'
       );
+      pedidosGuardados.push(pedidoCompleto);
+      localStorage.setItem('pedidos', JSON.stringify(pedidosGuardados));
+      this.pedidosSubject.next([]);
     }
   }
 
@@ -126,25 +117,17 @@ export class PedidoService {
   }
 
   /* ResumenVentas */
-  obtenerVentasPorDia(dia: string, callback: (ventas: any[]) => void): void {
-    const url = `${this.ventasApiUrl}?dia=${dia}`;
-
-    this.http.get<any[]>(url).subscribe(
-      (response) => {
-        const ventasPorDia = response
-          .filter((pedido) => pedido.nombreCliente && pedido.total)
-          .map((pedido, index) => ({
-            ticketId: `Ticket ${index + 1}`,
-            nombreCliente: pedido.nombreCliente,
-            total: parseFloat(pedido.total),
-          }));
-
-        callback(ventasPorDia); // Llama al callback con las ventas.
-      },
-      (error) => {
-        console.error('Error al obtener ventas por día:', error);
-        callback([]); // Llama al callback con un arreglo vacío en caso de error.
-      }
+  obtenerVentasPorDia(dia: string): any[] {
+    const pedidos = this.obtenerPedidos();
+    const pedidosPorDia = pedidos.filter(
+      (pedidos) => pedidos.diaSemana === dia
     );
+
+    const ventasPorDia = pedidosPorDia.map((pedido, index) => ({
+      ticketId: `Ticket ${index + 1}`,
+      nombreCliente: pedido.pedidos[0].cliente,
+      total: pedido.total,
+    }));
+    return ventasPorDia;
   }
 }
